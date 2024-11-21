@@ -1,0 +1,7 @@
+build/
+dist/
+src/tests/
+node_modules/
+lib/
+*.js
+*.test.ts

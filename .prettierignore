@@ -1,0 +1,7 @@
+/package.json
+/package-lock.json
+/android/*  
+/ios/*  
+/node_modules/* 
+lib/
+/__tests__/*
