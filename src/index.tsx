@@ -62,12 +62,14 @@ export const mediaPicker: MediaPicker = ({
   const camera = selectModal?.camera || "Camera";
   const library = selectModal?.library || "Gallery";
   const cancel = selectModal?.cancel || "Cancel";
+  const onCancel = selectModal?.onCancel;
 
   return new Promise(resolve => {
     Alert.alert(title, subtitle, [
       {
         text: cancel,
         style: "cancel",
+        onPress: () => onCancel?.(),
       },
       {
         text: camera,

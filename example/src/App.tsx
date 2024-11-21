@@ -5,132 +5,243 @@ import {
   StyleSheet,
   Text,
   View,
+  ScrollView,
+  ActivityIndicator,
 } from "react-native";
 import { useState } from "react";
 import {
   type Media,
   type MediaPickerOptions,
+  type MediaPickerConverterOptions,
+  type MediaConverterOptions,
+  type Format,
   mediaPicker,
   convertMedia,
   mediaPickerConverter,
-  type MediaPickerConverterOptions,
 } from "react-native-media-picker-converter";
 
 const App = () => {
-  const [images, setImages] = useState<Media[] | undefined>();
-  const [convertedImage, setConvertedImage] = useState<Media | null>(null);
+  const [pickedImages, setPickedImages] = useState<Media[]>([]);
+  const [convertedImages, setConvertedImages] = useState<Media[]>([]);
+  const [pickerConverterImages, setPickerConverterImages] = useState<Media[]>(
+    [],
+  );
+  const [loading, setLoading] = useState(false);
+  const TARGET_FORMAT: Format = "webp";
 
-  const options: MediaPickerOptions = {
+  // Media Picker Options
+  const mediaPickerOptions: MediaPickerOptions = {
     options: {
-      quality: 0.8,
+      quality: 1,
     },
     cameraOptions: {
       saveToPhotos: true,
     },
     libraryOptions: {
-      selectionLimit: 2,
+      selectionLimit: 5,
+    },
+    selectModal: {
+      onCancel: () => setLoading(false),
+      subtitle: "choose an option",
+      camera: "your camera",
     },
   };
 
-  const handleSelect = async () => {
-    const pickedImages = await mediaPicker(options);
-    setImages(pickedImages);
-
-    if (pickedImages && pickedImages[0] && pickedImages[0].originalPath) {
-      console.log("originalPath", pickedImages[0].originalPath);
-      console.log("uri", pickedImages[0].uri);
-
-      try {
-        const converted = await convertMedia({
-          sourcePath: pickedImages[0].originalPath,
-          format: "jpg",
-          quality: 1,
-        });
-        setConvertedImage(converted?.[0] ?? null);
-        console.log(converted);
-      } catch (e) {
-        console.log(e);
-      }
-    }
+  // Media Converter Options
+  const mediaConverterOptions: Omit<MediaConverterOptions, "sourcePath"> = {
+    format: TARGET_FORMAT,
+    quality: 0.9,
   };
 
+  // Media Picker Converter Options
   const mediaPickerConverterOptions: MediaPickerConverterOptions = {
     pickerOptions: {
-      cameraOptions: {
-        saveToPhotos: true,
+      libraryOptions: {
+        selectionLimit: 3,
+      },
+      selectModal: {
+        onCancel: () => setLoading(false),
+        title: "Select images",
       },
     },
     converterOptions: {
-      format: "jpg",
+      format: TARGET_FORMAT,
+      quality: 0.8,
     },
   };
 
-  const handleSelectandConvert = async () => {
-    const convertedImages = await mediaPickerConverter(
-      mediaPickerConverterOptions,
+  // Handle Media Picker
+  const handleMediaPicker = async () => {
+    setLoading(true);
+    const images = await mediaPicker(mediaPickerOptions);
+    console.log(
+      "First image converted from MediaPicker: ",
+      JSON.stringify(images?.[0], null, 2),
     );
-    console.log(convertedImages);
+    if (images) {
+      setPickedImages(images);
+    }
+    setLoading(false);
   };
 
-  const renderItem = ({ item }: { item: Media }) => (
+  // Handle Convert Media
+  const handleConvertMedia = async () => {
+    if (pickedImages.length > 0) {
+      setLoading(true);
+      const paths = pickedImages
+        .map(img => img.originalPath)
+        .filter(path => path !== undefined);
+      if (paths) {
+        const converted = await convertMedia({
+          sourcePath: paths,
+          ...mediaConverterOptions,
+        });
+        setConvertedImages(converted || []);
+        console.log(
+          "First image converted from ConvertMedia: ",
+          JSON.stringify(converted, null, 2),
+        );
+      }
+      setLoading(false);
+    }
+  };
+
+  // Handle Media Picker Converter
+  const handleMediaPickerConverter = async () => {
+    setLoading(true);
+    const images = await mediaPickerConverter(mediaPickerConverterOptions);
+    console.log(
+      "First image converted from MediaPickerConverter: ",
+      JSON.stringify(images?.[0], null, 2),
+    );
+    if (images) {
+      setPickerConverterImages(images);
+    }
+    setLoading(false);
+  };
+
+  // Render Image Item
+  const renderImageItem = ({ item }: { item: Media }) => (
     <View style={styles.imageContainer}>
-      <Image source={item} style={styles.image} />
-      <Text style={styles.text}>{item.originalPath}</Text>
+      <Image
+        source={{ uri: item.uri || item.originalPath }}
+        style={styles.image}
+      />
+      <Text style={styles.text}>{item.fileName}</Text>
     </View>
   );
 
   return (
-    <View style={styles.container}>
-      <Pressable onPress={handleSelect} style={styles.button}>
-        <Text style={styles.buttonText}>Select Image</Text>
-      </Pressable>
-      <Pressable onPress={handleSelectandConvert} style={styles.button}>
-        <Text style={styles.buttonText}>Select and Convert Image</Text>
-      </Pressable>
+    <ScrollView contentContainerStyle={styles.container}>
+      <Text style={styles.title}>Target format {TARGET_FORMAT}</Text>
+      <View style={styles.buttonContainer}>
+        <Pressable
+          onPress={handleMediaPicker}
+          style={[styles.button, loading && styles.buttonDisabled]}
+          disabled={loading}>
+          <Text style={styles.buttonText}>Select Images</Text>
+        </Pressable>
+        <Pressable
+          onPress={handleConvertMedia}
+          style={[styles.button, loading && styles.buttonDisabled]}
+          disabled={loading}>
+          <Text style={styles.buttonText}>Convert Images</Text>
+        </Pressable>
+        <Pressable
+          onPress={handleMediaPickerConverter}
+          style={[styles.button, loading && styles.buttonDisabled]}
+          disabled={loading}>
+          <Text style={styles.buttonText}>Pick & Convert</Text>
+        </Pressable>
+      </View>
 
-      <FlatList
-        data={images}
-        renderItem={renderItem}
-        keyExtractor={(item, index) => item.originalPath || String(index)}
-        style={styles.list}
-        scrollEnabled={false}
-      />
-
-      {convertedImage && (
-        <View style={styles.convertedContainer}>
-          <Text>Converted Image:</Text>
-          <Image source={convertedImage} style={styles.image} />
-          <Text style={styles.text}>{convertedImage.fileName}</Text>
+      {pickedImages.length > 0 && (
+        <View style={styles.listContainer}>
+          <Text style={styles.listTitle}>Picked Images</Text>
+          <FlatList
+            data={pickedImages}
+            renderItem={renderImageItem}
+            keyExtractor={(item, index) => item.originalPath || String(index)}
+            horizontal
+          />
         </View>
       )}
-    </View>
+
+      {convertedImages.length > 0 && (
+        <View style={styles.listContainer}>
+          <Text style={styles.listTitle}>Converted Images</Text>
+          <FlatList
+            data={convertedImages}
+            renderItem={renderImageItem}
+            keyExtractor={(item, index) => item.originalPath || String(index)}
+            horizontal
+          />
+        </View>
+      )}
+
+      {pickerConverterImages.length > 0 && (
+        <View style={styles.listContainer}>
+          <Text style={styles.listTitle}>Picker Converter Images</Text>
+          <FlatList
+            data={pickerConverterImages}
+            renderItem={renderImageItem}
+            keyExtractor={(item, index) => item.originalPath || String(index)}
+            horizontal
+          />
+        </View>
+      )}
+      {loading && (
+        <ActivityIndicator
+          size="large"
+          color="#007bff"
+          style={styles.loading}
+        />
+      )}
+    </ScrollView>
   );
 };
 
-export default App;
-
 const styles = StyleSheet.create({
   container: {
-    flex: 1,
+    flexGrow: 1,
     alignItems: "center",
     justifyContent: "center",
-    padding: 10,
+    padding: 20,
+  },
+  title: {
+    fontSize: 28,
+    fontWeight: "bold",
+    marginBottom: 20,
+  },
+  buttonContainer: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    marginBottom: 30,
   },
   button: {
     backgroundColor: "#007bff",
-    padding: 10,
+    padding: 12,
     borderRadius: 5,
+    marginHorizontal: 5,
   },
   buttonText: {
     color: "#fff",
     fontSize: 16,
   },
-  list: {
+  buttonDisabled: {
+    backgroundColor: "#b0b0b0",
+  },
+  listContainer: {
     width: "100%",
-    marginTop: 20,
+    marginVertical: 20,
+  },
+  listTitle: {
+    fontSize: 18,
+    fontWeight: "bold",
+    marginBottom: 10,
   },
   imageContainer: {
-    marginBottom: 10,
+    marginRight: 10,
     alignItems: "center",
   },
   image: {
@@ -138,11 +249,18 @@ const styles = StyleSheet.create({
     height: 100,
     borderRadius: 10,
   },
-  convertedContainer: {
-    marginTop: 20,
-    alignItems: "center",
-  },
   text: {
     color: "black",
+    marginTop: 5,
+  },
+  loading: {
+    position: "absolute",
+    top: 0,
+    bottom: 0,
+    right: 0,
+    left: 0,
+    backgroundColor: "rgba(0, 0, 0, 0.5)",
   },
 });
+
+export default App;

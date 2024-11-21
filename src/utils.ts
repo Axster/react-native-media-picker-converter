@@ -5,33 +5,60 @@ import {
   launchCamera,
   launchImageLibrary,
 } from "react-native-image-picker";
-import RNFS from "react-native-fs";
+// import RNFS from "react-native-fs";
+import { FileSystem, Dirs } from "react-native-file-access";
 
-console.log("RNFS:", RNFS);
+// export const saveToGallery = async (response: ImagePickerResponse) => {
+//   const images = response?.assets;
+//   if (!images || images.length < 1) return response;
+
+//   const savedAssets = await Promise.all(
+//     images.map(async image => {
+//       const originalPath = image.uri;
+//       if (originalPath && originalPath.startsWith("file://")) {
+//         const destinationPath =
+//           RNFS.DocumentDirectoryPath + "/" + image.fileName;
+
+//         await RNFS.copyFile(originalPath, destinationPath);
+
+//         return {
+//           ...image,
+//           originalPath: destinationPath,
+//         };
+//       }
+//       return image;
+//     }),
+//   );
+
+//   return { ...response, assets: savedAssets } as ImagePickerResponse;
+// };
 
 export const saveToGallery = async (response: ImagePickerResponse) => {
   const images = response?.assets;
-  if (!images || images.length < 1) return response;
+  if (!images || !images.length) return response;
+  try {
+    const savedAssets = await Promise.all(
+      images.map(async image => {
+        const originalPath = image.uri;
+        if (originalPath && originalPath.startsWith("file://")) {
+          const fileName = image.fileName || `image_${Date.now()}.jpg`;
+          const destinationPath = `${Dirs.DocumentDir}/${fileName}`;
 
-  const savedAssets = await Promise.all(
-    images.map(async image => {
-      const originalPath = image.uri;
-      if (originalPath && originalPath.startsWith("file://")) {
-        const destinationPath =
-          RNFS.DocumentDirectoryPath + "/" + image.fileName;
+          await FileSystem.cp(originalPath, destinationPath);
 
-        await RNFS.copyFile(originalPath, destinationPath);
-
-        return {
-          ...image,
-          originalPath: destinationPath,
-        };
-      }
-      return image;
-    }),
-  );
-
-  return { ...response, assets: savedAssets } as ImagePickerResponse;
+          return {
+            ...image,
+            originalPath: destinationPath,
+          };
+        }
+        return image;
+      }),
+    );
+    return { ...response, assets: savedAssets } as ImagePickerResponse;
+  } catch (e) {
+    console.error(e);
+  }
+  return response;
 };
 
 export const selectImages = async (
@@ -43,6 +70,7 @@ export const selectImages = async (
   try {
     if (origin === "camera") {
       const cameraResponse = await launchCamera(options);
+      if (typeof cameraResponse === "string") console.warn(cameraResponse);
       response = await saveToGallery(cameraResponse);
     } else {
       response = await launchImageLibrary(options);

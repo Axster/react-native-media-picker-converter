@@ -92,7 +92,7 @@
     "react": "18.3.1",
     "react-native": "^0.76.2",
     "react-native-builder-bob": "^0.32.1",
-    "react-native-fs": "^2.20.0",
+    "react-native-file-access": "^3.1.1",
     "react-native-image-picker": "^7.1.2",
     "release-it": "^17.10.0",
     "turbo": "^1.10.7",
@@ -104,7 +104,9 @@
   },
   "peerDependencies": {
     "react": "*",
-    "react-native": "*"
+    "react-native": "*",
+    "react-native-image-picker": "*",
+    "react-native-file-access": "*"
   },
   "workspaces": [
     "example"

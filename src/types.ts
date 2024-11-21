@@ -26,6 +26,7 @@ export type MediaPickerOptions = Partial<{
     camera: string;
     library: string;
     cancel: string;
+    onCancel: () => void;
   }>;
 }>;
 
