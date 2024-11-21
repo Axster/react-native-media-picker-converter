@@ -10911,7 +10911,7 @@ __metadata:
     "@react-native/metro-config": 0.76.2
     "@react-native/typescript-config": 0.76.2
     react: 18.3.1
-    react-native: 0.76.2
+    react-native: ^0.76.2
     react-native-builder-bob: ^0.32.1
   languageName: unknown
   linkType: soft
@@ -10957,7 +10957,7 @@ __metadata:
   languageName: unknown
   linkType: soft
 
-"react-native@npm:0.76.2, react-native@npm:^0.76.2":
+"react-native@npm:^0.76.2":
   version: 0.76.2
   resolution: "react-native@npm:0.76.2"
   dependencies:
