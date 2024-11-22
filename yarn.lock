@@ -10943,6 +10943,7 @@ __metadata:
   peerDependencies:
     react: "*"
     react-native: "*"
+    react-native-file-access: "*"
     react-native-image-picker: "*"
   languageName: unknown
   linkType: soft

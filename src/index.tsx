@@ -27,22 +27,26 @@ import type { OptionsCommon } from "react-native-image-picker";
 const { MediaPickerConverter } = NativeModules;
 
 export const convertMedia: MediaConverter = async ({
-  sourcePath,
+  source,
   format,
   quality,
 }) => {
   const convertFormat = format || "jpeg";
   const convertQuality = quality || 1;
   try {
-    if (Array.isArray(sourcePath)) {
-      const conversionPromises = sourcePath.map(path =>
-        MediaPickerConverter.convertImage(path, convertFormat, convertQuality),
-      );
+    if (Array.isArray(source)) {
+      const conversionPromises = source.map(img => {
+        const path = (img.uri || img.url)?.replace("file://", "");
+        return MediaPickerConverter.convertImage(
+          path,
+          convertFormat,
+          convertQuality,
+        );
+      });
       return await Promise.all(conversionPromises);
     }
-    return [
-      await MediaPickerConverter.convertImage(sourcePath, format, quality),
-    ];
+    const path = (source.uri || source.url)?.replace("file://", "");
+    return [await MediaPickerConverter.convertImage(path, format, quality)];
   } catch (error) {
     throw new Error(`Conversion failed: ${error}`);
   }
@@ -110,11 +114,8 @@ export const mediaPickerConverter: MediaPickerConverterType = async ({
 }) => {
   const selectedImages = await mediaPicker({ ...pickerOptions });
   if (!selectedImages) return;
-  const imagesPath = selectedImages
-    .map(image => image.originalPath)
-    .filter(path => path !== undefined);
   const convertedImages = await convertMedia({
-    sourcePath: imagesPath,
+    source: selectedImages,
     quality: converterOptions?.quality || 1,
     format: converterOptions?.format || "jpg",
   });

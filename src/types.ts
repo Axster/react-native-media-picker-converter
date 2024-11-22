@@ -36,7 +36,7 @@ export type MediaPicker = (
 
 export type Format = "jpg" | "jpeg" | "png" | "webp";
 export type MediaConverterOptions = {
-  sourcePath: string | string[];
+  source: Media | Media[];
   format?: Format;
   quality?: PhotoQuality;
 };
@@ -52,7 +52,7 @@ export type MediaPickerConverterOptions = {
   pickerOptions?: Omit<MediaPickerOptions, "options"> & {
     options?: ConverterPickerOptions;
   };
-  converterOptions?: Omit<MediaConverterOptions, "sourcePath">;
+  converterOptions?: Omit<MediaConverterOptions, "source">;
 };
 
 export type MediaPickerConverterType = (

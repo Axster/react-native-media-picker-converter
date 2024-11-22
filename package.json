@@ -105,8 +105,8 @@
   "peerDependencies": {
     "react": "*",
     "react-native": "*",
-    "react-native-image-picker": "*",
-    "react-native-file-access": "*"
+    "react-native-file-access": "*",
+    "react-native-image-picker": "*"
   },
   "workspaces": [
     "example"
