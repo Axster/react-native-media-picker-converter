@@ -27,12 +27,14 @@ const App = () => {
     [],
   );
   const [loading, setLoading] = useState(false);
-  const TARGET_FORMAT: Format = "webp";
+  const TARGET_FORMAT: Format = "jpg";
 
   // Media Picker Options
   const mediaPickerOptions: MediaPickerOptions = {
     options: {
       quality: 1,
+      maxHeight: 1024,
+      maxWidth: 1024,
     },
     cameraOptions: {
       saveToPhotos: true,
@@ -48,7 +50,7 @@ const App = () => {
   };
 
   // Media Converter Options
-  const mediaConverterOptions: Omit<MediaConverterOptions, "sourcePath"> = {
+  const mediaConverterOptions: Omit<MediaConverterOptions, "source"> = {
     format: TARGET_FORMAT,
     quality: 0.9,
   };
@@ -75,7 +77,7 @@ const App = () => {
     setLoading(true);
     const images = await mediaPicker(mediaPickerOptions);
     console.log(
-      "First image converted from MediaPicker: ",
+      "First image picked from MediaPicker: ",
       JSON.stringify(images?.[0], null, 2),
     );
     if (images) {
@@ -88,20 +90,15 @@ const App = () => {
   const handleConvertMedia = async () => {
     if (pickedImages.length > 0) {
       setLoading(true);
-      const paths = pickedImages
-        .map(img => img.originalPath)
-        .filter(path => path !== undefined);
-      if (paths) {
-        const converted = await convertMedia({
-          sourcePath: paths,
-          ...mediaConverterOptions,
-        });
-        setConvertedImages(converted || []);
-        console.log(
-          "First image converted from ConvertMedia: ",
-          JSON.stringify(converted, null, 2),
-        );
-      }
+      const converted = await convertMedia({
+        source: pickedImages,
+        ...mediaConverterOptions,
+      });
+      setConvertedImages(converted || []);
+      console.log(
+        "First image converted from ConvertMedia: ",
+        JSON.stringify(converted, null, 2),
+      );
       setLoading(false);
     }
   };
@@ -111,7 +108,7 @@ const App = () => {
     setLoading(true);
     const images = await mediaPickerConverter(mediaPickerConverterOptions);
     console.log(
-      "First image converted from MediaPickerConverter: ",
+      "First image picked and converted from MediaPickerConverter: ",
       JSON.stringify(images?.[0], null, 2),
     );
     if (images) {
