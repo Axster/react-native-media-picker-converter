@@ -16,8 +16,10 @@ import {
   type MediaConverterOptions,
   type Format,
   mediaPicker,
-  convertMedia,
+  mediaConvert,
   mediaPickerConverter,
+  mediaCompress,
+  type MediaCompressOptions,
 } from "react-native-media-picker-converter";
 
 const App = () => {
@@ -26,6 +28,7 @@ const App = () => {
   const [pickerConverterImages, setPickerConverterImages] = useState<Media[]>(
     [],
   );
+  const [compressedImages, setCompressedImages] = useState<Media[]>([]);
   const [loading, setLoading] = useState(false);
   const TARGET_FORMAT: Format = "jpg";
 
@@ -45,7 +48,7 @@ const App = () => {
     selectModal: {
       onCancel: () => setLoading(false),
       subtitle: "choose an option",
-      camera: "your camera",
+      camera: "Your camera",
     },
   };
 
@@ -68,8 +71,15 @@ const App = () => {
     },
     converterOptions: {
       format: TARGET_FORMAT,
-      quality: 0.8,
+      quality: 0.8, // only maxSize will work if present
+      maxSize: 500,
     },
+  };
+
+  // Media Compress Options
+  const mediaCompressOptions: Omit<MediaCompressOptions, "source"> = {
+    format: TARGET_FORMAT,
+    maxSize: 500,
   };
 
   // Handle Media Picker
@@ -90,7 +100,7 @@ const App = () => {
   const handleConvertMedia = async () => {
     if (pickedImages.length > 0) {
       setLoading(true);
-      const converted = await convertMedia({
+      const converted = await mediaConvert({
         source: pickedImages,
         ...mediaConverterOptions,
       });
@@ -115,6 +125,23 @@ const App = () => {
       setPickerConverterImages(images);
     }
     setLoading(false);
+  };
+
+  // Handle Media Compress
+  const handleCompressMedia = async () => {
+    if (pickedImages.length > 0) {
+      setLoading(true);
+      const compressed = await mediaCompress({
+        source: pickedImages,
+        ...mediaCompressOptions,
+      });
+      setCompressedImages(compressed || []);
+      console.log(
+        "First image compressed from MediaCompress: ",
+        JSON.stringify(compressed?.[0], null, 2),
+      );
+      setLoading(false);
+    }
   };
 
   // Render Image Item
@@ -149,6 +176,12 @@ const App = () => {
           style={[styles.button, loading && styles.buttonDisabled]}
           disabled={loading}>
           <Text style={styles.buttonText}>Pick & Convert</Text>
+        </Pressable>
+        <Pressable
+          onPress={handleCompressMedia}
+          style={[styles.button, loading && styles.buttonDisabled]}
+          disabled={loading}>
+          <Text style={styles.buttonText}>Compress Images</Text>
         </Pressable>
       </View>
 
@@ -187,6 +220,19 @@ const App = () => {
           />
         </View>
       )}
+
+      {compressedImages.length > 0 && (
+        <View style={styles.listContainer}>
+          <Text style={styles.listTitle}>Compressed Images</Text>
+          <FlatList
+            data={compressedImages}
+            renderItem={renderImageItem}
+            keyExtractor={(item, index) => item.originalPath || String(index)}
+            horizontal
+          />
+        </View>
+      )}
+
       {loading && (
         <ActivityIndicator
           size="large"
