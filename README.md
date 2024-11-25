@@ -2,7 +2,7 @@
 
 > A powerful React Native library for picking, converting, and compressing images with a simple API.
 
-![Demo](./assets/demo.gif)
+![Demo](./assets/media-picker-coverter-demo.gif)
 
 ## Features
 
