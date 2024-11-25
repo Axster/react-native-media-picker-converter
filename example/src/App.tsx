@@ -258,14 +258,16 @@ const styles = StyleSheet.create({
   },
   buttonContainer: {
     flexDirection: "row",
-    justifyContent: "space-between",
+    flexWrap: "wrap",
+    justifyContent: "space-evenly",
+    gap: 10,
     marginBottom: 30,
   },
   button: {
+    minWidth: 150,
     backgroundColor: "#007bff",
     padding: 12,
     borderRadius: 5,
-    marginHorizontal: 5,
   },
   buttonText: {
     color: "#fff",
