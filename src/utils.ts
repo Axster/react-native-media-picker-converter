@@ -2,36 +2,12 @@ import { Alert } from "react-native";
 import {
   type ImagePickerResponse,
   type OptionsCommon,
+  type PhotoQuality,
   launchCamera,
   launchImageLibrary,
 } from "react-native-image-picker";
-// import RNFS from "react-native-fs";
 import { FileSystem, Dirs } from "react-native-file-access";
-
-// export const saveToGallery = async (response: ImagePickerResponse) => {
-//   const images = response?.assets;
-//   if (!images || images.length < 1) return response;
-
-//   const savedAssets = await Promise.all(
-//     images.map(async image => {
-//       const originalPath = image.uri;
-//       if (originalPath && originalPath.startsWith("file://")) {
-//         const destinationPath =
-//           RNFS.DocumentDirectoryPath + "/" + image.fileName;
-
-//         await RNFS.copyFile(originalPath, destinationPath);
-
-//         return {
-//           ...image,
-//           originalPath: destinationPath,
-//         };
-//       }
-//       return image;
-//     }),
-//   );
-
-//   return { ...response, assets: savedAssets } as ImagePickerResponse;
-// };
+import type { Format, Media } from "./types";
 
 export const saveToGallery = async (response: ImagePickerResponse) => {
   const images = response?.assets;
@@ -85,4 +61,16 @@ export const selectImages = async (
     }
   }
   return;
+};
+
+export const getPath = (img: Media) => {
+  return (img.uri || img.url)?.replace("file://", "");
+};
+
+export const compressParameters: PhotoQuality[] = [
+  1, 0.9, 0.8, 0.7, 0.6, 0.6, 0.4,
+];
+
+export const getCompressFormat = (format?: Format) => {
+  return !format || format === "png" ? "jpg" : format;
 };

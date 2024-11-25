@@ -1,14 +1,26 @@
 import type {
-  Asset,
   CameraOptions,
   ImageLibraryOptions,
   OptionsCommon,
   PhotoQuality,
 } from "react-native-image-picker";
 
-export type Media = Asset & {
+export type Media = {
   name?: string;
   url?: string;
+  base64?: string;
+  uri?: string;
+  width?: number;
+  height?: number;
+  path?: string;
+  originalPath?: string;
+  size?: string;
+  fileSize?: number;
+  type?: string;
+  mimeType?: string;
+  fileName?: string;
+  timestamp?: string;
+  id?: string;
 };
 
 export type MediaPickerOptions = Partial<{
@@ -18,7 +30,6 @@ export type MediaPickerOptions = Partial<{
   >;
   libraryOptions: Pick<ImageLibraryOptions, "selectionLimit">;
   cameraOptions: Pick<CameraOptions, "saveToPhotos" | "cameraType">;
-  // convertTo?: Format;
   errorMessage: string;
   selectModal: Partial<{
     title: string;
@@ -44,6 +55,13 @@ export type MediaConverter = (
   mediaConverterOptions: MediaConverterOptions,
 ) => Promise<Media[]>;
 
+export type MediaCompressOptions = Omit<MediaConverterOptions, "quality"> & {
+  maxSize: number;
+};
+export type MediaCompress = (
+  mediaConverterOptions: MediaCompressOptions,
+) => Promise<Media[]>;
+
 export type ConverterPickerOptions = Pick<
   OptionsCommon,
   "maxWidth" | "maxHeight" | "includeBase64" | "presentationStyle"
@@ -52,7 +70,9 @@ export type MediaPickerConverterOptions = {
   pickerOptions?: Omit<MediaPickerOptions, "options"> & {
     options?: ConverterPickerOptions;
   };
-  converterOptions?: Omit<MediaConverterOptions, "source">;
+  converterOptions?: Omit<MediaConverterOptions, "source"> & {
+    maxSize?: number;
+  };
 };
 
 export type MediaPickerConverterType = (
