@@ -5,6 +5,8 @@ import android.graphics.BitmapFactory
 import com.facebook.react.bridge.*
 import java.io.*
 import kotlin.math.roundToInt
+import android.media.ExifInterface
+import android.graphics.Matrix
 
 class MediaPickerConverterModule(reactContext: ReactApplicationContext) : 
     ReactContextBaseJavaModule(reactContext) {
@@ -20,9 +22,29 @@ class MediaPickerConverterModule(reactContext: ReactApplicationContext) :
                 return
             }
 
-            // Load the source image
-            val sourceBitmap = BitmapFactory.decodeFile(sourcePath)
+            // Load image with EXIF orientation handling
+            val options = BitmapFactory.Options().apply {
+                inJustDecodeBounds = false
+            }
+            
+            // Read EXIF orientation
+            val exif = ExifInterface(sourcePath)
+            val orientation = exif.getAttributeInt(ExifInterface.TAG_ORIENTATION, ExifInterface.ORIENTATION_NORMAL)
+            
+            // Load bitmap and apply orientation
+            var sourceBitmap = BitmapFactory.decodeFile(sourcePath, options)
                 ?: throw Exception("Failed to load source image")
+            
+            sourceBitmap = when (orientation) {
+                ExifInterface.ORIENTATION_ROTATE_90 -> rotateBitmap(sourceBitmap, 90f)
+                ExifInterface.ORIENTATION_ROTATE_180 -> rotateBitmap(sourceBitmap, 180f)
+                ExifInterface.ORIENTATION_ROTATE_270 -> rotateBitmap(sourceBitmap, 270f)
+                ExifInterface.ORIENTATION_FLIP_HORIZONTAL -> flipBitmap(sourceBitmap, true, false)
+                ExifInterface.ORIENTATION_FLIP_VERTICAL -> flipBitmap(sourceBitmap, false, true)
+                ExifInterface.ORIENTATION_TRANSPOSE -> flipBitmap(rotateBitmap(sourceBitmap, 90f), true, false)
+                ExifInterface.ORIENTATION_TRANSVERSE -> flipBitmap(rotateBitmap(sourceBitmap, 270f), true, false)
+                else -> sourceBitmap
+            }
 
             val destinationFormat = format.lowercase()
             val compressFormat = when (destinationFormat) {
@@ -75,5 +97,10 @@ class MediaPickerConverterModule(reactContext: ReactApplicationContext) :
         } catch (e: Exception) {
             promise.reject("ERROR", "Conversion failed: ${e.message}")
         }
+    }
+
+    private fun rotateBitmap(bitmap: Bitmap, degrees: Float): Bitmap {
+        val matrix = Matrix().apply { postRotate(degrees) }
+        return Bitmap.createBitmap(bitmap, 0, 0, bitmap.width, bitmap.height, matrix, true)
     }
 }
