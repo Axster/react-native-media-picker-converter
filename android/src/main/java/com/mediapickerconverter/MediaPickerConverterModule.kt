@@ -103,4 +103,16 @@ class MediaPickerConverterModule(reactContext: ReactApplicationContext) :
         val matrix = Matrix().apply { postRotate(degrees) }
         return Bitmap.createBitmap(bitmap, 0, 0, bitmap.width, bitmap.height, matrix, true)
     }
+
+    /**
+     * Flip bitmap horizontally and/or vertically
+     */
+    private fun flipBitmap(bitmap: Bitmap, flipHorizontal: Boolean, flipVertical: Boolean): Bitmap {
+        val matrix = Matrix().apply {
+            val scaleX = if (flipHorizontal) -1f else 1f
+            val scaleY = if (flipVertical) -1f else 1f
+            postScale(scaleX, scaleY)
+        }
+        return Bitmap.createBitmap(bitmap, 0, 0, bitmap.width, bitmap.height, matrix, true)
+    }
 }
