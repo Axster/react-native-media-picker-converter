@@ -1,6 +1,6 @@
 {
   "name": "react-native-media-picker-converter",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "description": "A powerful React Native library for picking, converting, and compressing images",
   "source": "./src/index.tsx",
   "main": "./lib/commonjs/index.js",
